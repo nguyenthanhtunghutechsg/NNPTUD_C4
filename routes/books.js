@@ -49,7 +49,7 @@ router.get('/', async function (req, res, next) {
   let page = req.query.page ? req.query.page : 1;
   let limit = req.query.limit ? req.query.limit : 5;
   var books = await bookModel.find(
-    objQueries)
+    objQueries).populate({path:'author',select:"_id name"}).lean()
     .skip((page - 1) * limit).limit(limit)
     .sort(sortObj);
   res.send(books);

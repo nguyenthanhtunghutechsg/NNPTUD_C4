@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+const author = require('./author');
 var bookSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -6,7 +7,10 @@ var bookSchema = new mongoose.Schema({
         unique: true
     },
     year: Number,
-    author: String,
+    author: {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"author"
+    },
     isDeleted:{
         type:Boolean,
         default:false
