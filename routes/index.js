@@ -5,5 +5,6 @@ var router = express.Router();
 router.use('/books',require('./books'));
 router.use('/users',require('./users'));
 router.use('/authors',require('./authors'));
+router.use('/auth',require('./auth'));
 
 module.exports = router;
