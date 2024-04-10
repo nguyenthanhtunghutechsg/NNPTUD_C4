@@ -8,7 +8,7 @@ var checkLogin = require('../middlewares/checkLogin');
 
 router.get('/',checkLogin , async function (req, res, next) {
   let users = await userModel.find({}).exec();
-  Res.ResRend(res, true, req.user)
+  Res.ResRend(res, true, users)
 });
 
 router.get('/:id', async function (req, res, next) {
@@ -47,8 +47,6 @@ router.put('/:id', async function (req, res, next) {
     Res.ResRend(res, false, error)
   }
 });
-
-
 router.delete('/:id', async function (req, res, next) {
   try {
     let user = await userModel.findByIdAndUpdate

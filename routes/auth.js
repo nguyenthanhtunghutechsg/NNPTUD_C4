@@ -5,6 +5,12 @@ var Res = require('../helpers/ResRender');
 var { validationResult } = require('express-validator');
 var checkUser = require('../validators/auth')
 var bcrypt = require("bcrypt")
+var checkLogin = require('../middlewares/checkLogin');
+
+router.get('/me', checkLogin, async function (req, res, next) {
+  Res.ResRend(res, true, req.user)
+});
+
 
 
 router.post('/login', async function (req, res, next) {
@@ -21,11 +27,29 @@ router.post('/login', async function (req, res, next) {
   }
   let result = bcrypt.compareSync(password, user.password);
   if (result) {
-    Res.ResRend(res, true, user.genJWT());
+    let token = user.genJWT();
+    res.status(200).cookie("kento", token, {
+      expires: new Date(Date.now() + 3600 * 1000),
+      httpOnly: true
+    }).send({
+      success: true,
+      data: token
+    })
+    //Res.ResRend(res, true, user.genJWT());
   } else {
     Res.ResRend(res, false, "password sai");
   }
 });
+
+router.post('/logout',checkLogin, async function (req, res, next) {
+  res.status(200).cookie("kento", 'null', {
+    expires: new Date(Date.now() +  1000),
+    httpOnly: true
+  }).send({
+    success: true,
+    data: "dang xuat thanh cong"
+  })
+})
 
 router.post('/register', checkUser(), async function (req, res, next) {//3
   var result = validationResult(req);
