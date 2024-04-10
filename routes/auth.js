@@ -4,14 +4,71 @@ var userModel = require('../schemas/user')
 var Res = require('../helpers/ResRender');
 var { validationResult } = require('express-validator');
 var checkUser = require('../validators/auth')
+var checkChangePassword = require('../validators/changpassword')
 var bcrypt = require("bcrypt")
 var checkLogin = require('../middlewares/checkLogin');
+const changpassword = require('../validators/changpassword');
+const sendMail = require('../helpers/sendMail')
+
+//them checkpassword
+router.post('/resetpassword/:token',async function (req, res, next) {
+  let user = await userModel.findOne({
+    tokenResetPassword: req.params.token
+  })
+  if (!user) {
+    Res.ResRend(res, false, "URL khong hop le")
+    return;
+  }
+  if (user.tokenResetPasswordExp > Date.now) {
+    Res.ResRend(res, false, "URL khong hop le")
+    return;
+  }
+  user.password = req.body.password;
+  user.tokenResetPassword = undefined;
+  user.tokenResetPasswordExp = undefined;
+  await user.save();
+  Res.ResRend(res, true, "cap nhat thanh cong")
+});
+
+router.post('/forgotpassword', async function (req, res, next) {
+  let user = await userModel.findOne({
+    email: req.body.email
+  })
+  if (!user) {
+    Res.ResRend(res, false, "email khong ton tai")
+    return;
+  }
+  let token = user.genResetToken();
+  await user.save();
+  let url = `localhost:3000/auth/resetpassword/${token}`;
+  await sendMail(user.email,url);
+  Res.ResRend(res, true, "check mail bo` li")
+});
+
+
+
+
 
 router.get('/me', checkLogin, async function (req, res, next) {
   Res.ResRend(res, true, req.user)
 });
 
-
+router.post('/changepassword', checkLogin, changpassword(), async function (req, res, next) {
+  let result = validationResult(req);
+  if (result.errors.length > 0) {
+    Res.ResRend(res, false, result.errors)
+    return;
+  }
+  let userPassword = req.user.password;
+  if (bcrypt.compareSync(req.body.oldpassword, userPassword)) {
+    let user = await userModel.findById(req.user._id);
+    user.password = req.body.newpassword;
+    await user.save();
+    Res.ResRend(res, true, "doi password thanh cong")
+  } else {
+    Res.ResRend(res, false, "oldpassword sai")
+  }
+});
 
 router.post('/login', async function (req, res, next) {
   let username = req.body.username;
@@ -41,9 +98,9 @@ router.post('/login', async function (req, res, next) {
   }
 });
 
-router.post('/logout',checkLogin, async function (req, res, next) {
+router.post('/logout', checkLogin, async function (req, res, next) {
   res.status(200).cookie("kento", 'null', {
-    expires: new Date(Date.now() +  1000),
+    expires: new Date(Date.now() + 1000),
     httpOnly: true
   }).send({
     success: true,

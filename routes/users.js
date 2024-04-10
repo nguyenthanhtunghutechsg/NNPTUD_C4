@@ -5,8 +5,8 @@ var Res = require('../helpers/ResRender');
 var { validationResult } = require('express-validator');
 var checkUser = require('../validators/user')
 var checkLogin = require('../middlewares/checkLogin');
-
-router.get('/',checkLogin , async function (req, res, next) {
+var checkRole = require('../middlewares/checkRole');
+router.get('/', checkLogin, checkRole("ADMIN", "Modifier"), async function (req, res, next) {
   let users = await userModel.find({}).exec();
   Res.ResRend(res, true, users)
 });
@@ -20,7 +20,7 @@ router.get('/:id', async function (req, res, next) {
   }
 });
 
-router.post('/', checkUser(), async function (req, res, next) {//3
+router.post('/',checkLogin,checkRole("ADMIN"), checkUser(), async function (req, res, next) {//3
   var result = validationResult(req);
   if (result.errors.length > 0) {
     Res.ResRend(res, false, result.errors);
