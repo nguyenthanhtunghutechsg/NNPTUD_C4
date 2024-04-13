@@ -9,6 +9,8 @@ var bcrypt = require("bcrypt")
 var checkLogin = require('../middlewares/checkLogin');
 const changpassword = require('../validators/changpassword');
 const sendMail = require('../helpers/sendMail')
+var cors  = require('cors')
+
 
 //them checkpassword
 router.post('/resetpassword/:token',async function (req, res, next) {
@@ -40,7 +42,9 @@ router.post('/forgotpassword', async function (req, res, next) {
   }
   let token = user.genResetToken();
   await user.save();
-  let url = `localhost:3000/auth/resetpassword/${token}`;
+  //send URL cua cai form reset mat khau
+  //http://localhost:44124/resetpass.html?token = 
+  let url = `http://localhost:3000/auth/resetpassword/${token}`;
   await sendMail(user.email,url);
   Res.ResRend(res, true, "check mail bo` li")
 });
@@ -70,7 +74,7 @@ router.post('/changepassword', checkLogin, changpassword(), async function (req,
   }
 });
 
-router.post('/login', async function (req, res, next) {
+router.post('/login',cors(), async function (req, res, next) {
   let username = req.body.username;
   let password = req.body.password;
   if (!username || !password) {

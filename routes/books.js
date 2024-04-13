@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var bookModel = require('../schemas/book')
 var Res = require('../helpers/ResRender');
+require('express-async-errors')
+
 
 
 //localhost:3000/books
@@ -56,12 +58,14 @@ router.get('/', async function (req, res, next) {
 });
 
 router.get('/:id', async function (req, res, next) {
-  try {
-    var book = await bookModel.find({ _id: req.params.id });
-    Res.ResRend(res, true, book);
-  } catch (error) {
-    Res.ResRend(res, false, error);
-  }
+  // try {
+  //   var book = await bookModel.find({ _id: req.params.id });
+  //   Res.ResRend(res, true, book);
+  // } catch (error) {
+  //   Res.ResRend(res, false, error);
+  // }
+  var book = await bookModel.find({ _id: req.params.id });
+  Res.ResRend(res, true, book);
 });
 
 router.post('/', async function (req, res, next) {
